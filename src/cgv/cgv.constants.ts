@@ -1,1 +1,1 @@
-export const CGV_URL = 'http://m.cgv.co.kr/WebAPP/Reservation/Common/ajaxTheaterScheduleList.aspx';
+export const CGV_URL = 'http://m.cgv.co.kr/WebAPP/Reservation/Common';

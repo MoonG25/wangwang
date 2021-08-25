@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { CgvService } from './cgv.service';
 import { ScheduleSearchDto } from './dto/schedule-search.dto';
 import { TheaterScheduleDto } from './dto/theater-schedule.dto';
@@ -20,6 +20,11 @@ export class CgvController {
   @Post('schedule')
   getTheaterScheduleList(@Body() theaterSchedule: TheaterScheduleDto) {
     return this.cgvService.getTheaterScheduleList(theaterSchedule);
+  }
+
+  @Post('ticket')
+  findTicket(@Body() data: any) {
+    return this.cgvService.findTicket(data);
   }
 
   @Post('map')
