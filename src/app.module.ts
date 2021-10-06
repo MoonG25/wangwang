@@ -4,7 +4,9 @@ import { AppService } from './app.service';
 import { CgvModule } from './cgv/cgv.module';
 
 @Module({
-  imports: [CgvModule],
+  imports: [
+    CgvModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
