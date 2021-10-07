@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { find, map } from 'rxjs';
 import { CacheService } from 'src/cache/cache.service';
 import { CGV_URL } from './cgv.constants';
@@ -12,6 +13,8 @@ import { TheaterScheduleDto } from './dto/theater-schedule.dto';
  */
 @Injectable()
 export class CgvService {
+  private readonly logger = new Logger(CgvService.name);
+
   constructor(
     private readonly httpService: HttpService,
     private readonly cacheService: CacheService,
@@ -103,5 +106,18 @@ export class CgvService {
 
   async getSearchKeys() {
     return await this.cacheService.keys();
+  }
+
+  @Cron('45 * * * * *')
+  async searching() {
+    /*
+        1. Redis에 저장된 키 목록 조회
+        2. 현재 상영중인 데이터 조회
+        3. 있는지 확인
+        4. 있으면 Redis에서 제거 후 메세지 전송
+    */
+    const keys = await this.getSearchKeys();
+    this.logger.log('searching' + keys);
+    return keys;
   }
 }
