@@ -47,4 +47,14 @@ export class CgvController {
   getMiniMapData(@Body() data: any) {
     return this.cgvService.getMiniMapData(data);
   }
+
+  @Get('soon')
+  comingSoon() {
+    return this.cgvService.comingSoon();
+  }
+
+  @Get('store')
+  store() {
+    return this.cgvService.searchingComingSoon();
+  }
 }

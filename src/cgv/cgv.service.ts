@@ -3,10 +3,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { find, map } from 'rxjs';
 import { CacheService } from 'src/cache/cache.service';
-import { CGV_URL } from './cgv.constants';
+import { CGV_URL, COMING_SOON, SEPARATOR } from './cgv.constants';
 import { ScheduleSearchDto } from './dto/schedule-search.dto';
 import { SearchDto } from './dto/search.dto';
 import { TheaterScheduleDto } from './dto/theater-schedule.dto';
+import {JSDOM} from 'jsdom';
 
 /**
  * @todo 받아온 데이터를 담을 클래스 만들기
@@ -70,7 +71,7 @@ export class CgvService {
   }
 
   createKey(name: string, date: Date) {
-    return name + date;
+    return name + SEPARATOR + date;
   }
 
   pad(value: number) {
@@ -117,7 +118,47 @@ export class CgvService {
         4. 있으면 Redis에서 제거 후 메세지 전송
     */
     const keys = await this.getSearchKeys();
+    console.log(keys);
     this.logger.log('searching' + keys);
     return keys;
+  }
+
+  async comingSoon() {
+    return await this.cacheService.get(COMING_SOON);
+  }
+
+  @Cron('0 0 * * * *')
+  async searchingComingSoon() {
+    try {
+      const response = await this.httpService
+        .get(`http://m.cgv.co.kr`)
+        .pipe(map(res => res.data))
+        .toPromise();
+
+      const { window: { document }} = new JSDOM(response);
+
+      const infoList = document.querySelectorAll(`
+        ul.cgvMovieChartContainer 
+          > li:last-child 
+            > ul.cgvMovieChartContents 
+              > li:first-child 
+                .movieInfo
+      `);
+
+      const result = Array.from(infoList).map((item: any) => {
+        const title = item.querySelector('p.cgbMovieTitle').textContent;
+        const image = item.querySelector('a > img').getAttribute('data-src').split('|')[1];
+        const dday = parseInt(item.querySelector('.movieDday').getAttribute('data-value'))
+        return {
+          title,
+          image,
+          dday
+        }
+      });
+
+      this.cacheService.set(COMING_SOON, result);
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
